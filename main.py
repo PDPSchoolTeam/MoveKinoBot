@@ -1,5 +1,6 @@
 import asyncio
 import logging
+
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery
@@ -9,6 +10,7 @@ from buttons import check
 
 BOT_TOKEN = ""
 CHAT_ID = '@nur02_16'
+CHANNEL_2_ID = '-1002057944992'
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -25,25 +27,33 @@ async def cmd_start(message: types.Message):
     )
 
 
+
+
 @dp.callback_query(F.data == "Tekshirish")
 async def callback_submit(call: CallbackQuery, bot: Bot):
-    user_status = await bot.get_chat_member(chat_id=CHAT_ID, user_id=call.from_user.id)
-    if user_status.status != "left":
+    user_id = call.from_user.id
+
+    # Check membership for both channels
+    user_status_1 = await bot.get_chat_member(chat_id=CHAT_ID, user_id=user_id)
+    user_status_2 = await bot.get_chat_member(chat_id=CHANNEL_2_ID, user_id=user_id)
+
+    if user_status_1.status != "left" and user_status_2.status != "left":
         await bot.send_message(
-            call.from_user.id, "✅"
+            user_id,
+            "✅"
         )
         await bot.send_message(
-            call.from_user.id,
-            f"👋 Assalomu alaykum, {call.from_user.full_name} botimizga xush kelibsiz.\n\n✍🏻 Kino kodini yuboring."
-
+            user_id,
+            f"👋 Assalomu alaykum, {call.from_user.full_name}! Botimizga xush kelibsiz.\n\n✍🏻 Kino kodini yuboring."
         )
     else:
-        await bot.send_message(call.from_user.id, text="Siz kanalga obuna bulmagansiz!", reply_markup=check)
-        text = ("Kanalga obuna bo'lmagansiz ⚠️"
-                )
-        show_alert = True
-        await call.answer(text, show_alert=show_alert)
-
+        await bot.send_message(
+            user_id,
+            text="Siz ikkala kanalga obuna bo‘lmagansiz! Iltimos, pastdagi tugmalardan foydalanib obuna bo‘ling.",
+            reply_markup=check
+        )
+        text = "⚠️ Iltimos, ikkala kanalga obuna bo‘ling va qayta tekshiring!"
+        await call.answer(text, show_alert=True)
 
 # |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 @dp.message(F.video)
